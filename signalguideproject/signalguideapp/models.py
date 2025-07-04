@@ -39,6 +39,11 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return f"{self.employee_id} - {self.name} ({self.role})"
+    
+    class Meta:
+        verbose_name = '員工帳號'
+        verbose_name_plural = '帳號管理'
+        ordering = ['employee_id']
 
 # 工作說明書模型
 class SignalGuide(models.Model):
@@ -50,3 +55,8 @@ class SignalGuide(models.Model):
 
     def __str__(self):
         return self.title
+    
+    class Meta:
+        verbose_name = '工作說明書'
+        verbose_name_plural = '工作說明書列表'
+        ordering = ['category', 'title']
