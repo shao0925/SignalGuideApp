@@ -12,7 +12,7 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final emailController = TextEditingController();
+  final employeeidController = TextEditingController();
   final passwordController = TextEditingController();
   final storage = FlutterSecureStorage();
 
@@ -24,7 +24,7 @@ class _LoginPageState extends State<LoginPage> {
       url,
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
-        'username': emailController.text.trim(),
+        'employee_id': employeeidController.text.trim(),
         'password': passwordController.text.trim(),
       }),
     );
@@ -33,6 +33,7 @@ class _LoginPageState extends State<LoginPage> {
       final data = jsonDecode(response.body);
       await storage.write(key: 'access_token', value: data['access']);
       await storage.write(key: 'refresh_token', value: data['refresh']);
+      await storage.write(key: 'role', value: data['role']);
 
       Navigator.pushReplacement(
         context,
@@ -63,9 +64,9 @@ class _LoginPageState extends State<LoginPage> {
               const Text("請輸入登入資訊：", style: TextStyle(fontSize: 18)),
               const SizedBox(height: 20),
               TextField(
-                controller: emailController,
+                controller: employeeidController,
                 decoration: const InputDecoration(
-                  labelText: "Email",
+                  labelText: "員工編號",
                   border: OutlineInputBorder(),
                 ),
               ),
