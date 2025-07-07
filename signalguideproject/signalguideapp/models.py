@@ -27,10 +27,10 @@ class CustomUser(AbstractUser):
     name = models.CharField(max_length=100, verbose_name='姓名')
 
     ROLE_CHOICES = (
-        ('manager', '主管'),
-        ('employee', '員工'),
+        ('A', '管理者'),
+        ('B', '查詢者'),
     )
-    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='employee')
+    role = models.CharField(max_length=1, choices=ROLE_CHOICES, default='B')
 
     USERNAME_FIELD = 'employee_id'
     REQUIRED_FIELDS = ['name']
