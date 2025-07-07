@@ -51,6 +51,28 @@ def create_user_view(request):
     except Exception as e:
         return Response({'detail': f'建立失敗：{str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
 
+# 修改密碼：僅限已登入使用者
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def change_password(request):
+    user = request.user
+    data = request.data
+
+    # old_password = data.get('old_password')
+    new_password = data.get('new_password')
+    
+    '''
+    if not user.check_password(old_password):
+        return Response({'detail': '舊密碼錯誤'}, status=status.HTTP_400_BAD_REQUEST)
+    '''
+    
+    if not new_password or len(new_password) < 6:
+        return Response({'detail': '新密碼長度不足'}, status=status.HTTP_400_BAD_REQUEST)
+
+    user.set_password(new_password)
+    user.save()
+    return Response({'detail': '密碼修改成功'}, status=status.HTTP_200_OK)
+
 # SignalGuide ViewSet
 class SignalGuideViewSet(viewsets.ModelViewSet):
     queryset = SignalGuide.objects.all()
