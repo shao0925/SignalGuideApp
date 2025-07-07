@@ -1,7 +1,9 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'login.dart';
+import 'create_user.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -126,6 +128,21 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
               ),
+              if (_employeeId == 'A0000') // ✅ 只有特定員工編號才顯示
+                ListTile(
+                  leading: const Icon(Icons.admin_panel_settings),
+                  title: const Text('後台管理'),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    const url = 'http://10.0.2.2:8000/admin/';
+                    // 嘗試用瀏覽器開啟（使用 url_launcher 套件）
+                    // 若尚未加入依賴請見下方說明
+                    if (!await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication)) {
+                      throw Exception('無法開啟後台管理');
+                    }
+                  },
+                ),
+
               if (_userRole == 'A') ...[
                 ListTile(
                   leading: const Icon(Icons.person_add),
@@ -133,6 +150,10 @@ class _HomePageState extends State<HomePage> {
                   onTap: () {
                     Navigator.pop(context);
                     print("點選：新增帳號");
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const CreateUserPage()),
+                    );
                   },
                 ),
                 ListTile(
@@ -144,14 +165,6 @@ class _HomePageState extends State<HomePage> {
                   },
                 ),
               ],
-              ListTile(
-                leading: const Icon(Icons.book),
-                title: const Text('查詢工作說明書'),
-                onTap: () {
-                  Navigator.pop(context);
-                  print("點選：查詢工作說明書");
-                },
-              ),
             ],
           ),
         ),
