@@ -33,6 +33,8 @@ class _LoginPageState extends State<LoginPage> {
       final data = jsonDecode(response.body);
       await storage.write(key: 'access_token', value: data['access']);
       await storage.write(key: 'refresh_token', value: data['refresh']);
+      await storage.write(key: 'name', value: data['name']);
+      await storage.write(key: 'employee_id', value: data['employee_id']);
       await storage.write(key: 'role', value: data['role']);
 
       Navigator.pushReplacement(
