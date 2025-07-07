@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from .models import SignalGuide
 from .serializers import SignalGuideSerializer
+import re
 
 
 
@@ -31,6 +32,10 @@ def create_user_view(request):
 
     if not all(field in data for field in required_fields):
         return Response({'detail': '資料不完整'}, status=status.HTTP_400_BAD_REQUEST)
+
+    emp_id = data['employee_id']
+    if emp_id != 'A0000' and not re.fullmatch(r'\d{5}', emp_id):
+        return Response({'detail': '員工編號必須是五位數數字（如 00001）'}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
         user = User.objects.create_user(

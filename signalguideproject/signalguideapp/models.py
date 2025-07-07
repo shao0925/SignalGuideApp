@@ -1,5 +1,7 @@
+import re
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.core.exceptions import ValidationError
 
 # 自訂使用者管理器
 class CustomUserManager(BaseUserManager):
@@ -20,10 +22,22 @@ class CustomUserManager(BaseUserManager):
         extra_fields.setdefault('is_superuser', True)
         return self.create_user(employee_id, name, password, **extra_fields)
 
+# 驗證五位數員工編號
+def validate_five_digit_id(value):
+    if value == 'A0000':
+        return  # 特例通過
+    if not re.fullmatch(r'\d{5}', value):
+        raise ValidationError('員工編號必須是五位數數字（例如 00001）')
+
 # 自訂使用者模型（員工帳號）
 class CustomUser(AbstractUser):
     username = None
-    employee_id = models.CharField(max_length=20, unique=True, verbose_name='員工編號')
+    employee_id = models.CharField(
+        max_length=5,
+        unique=True,
+        verbose_name='員工編號',
+        validators=[validate_five_digit_id]
+    )
     name = models.CharField(max_length=100, verbose_name='姓名')
 
     ROLE_CHOICES = (
