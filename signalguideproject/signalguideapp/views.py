@@ -5,11 +5,14 @@ from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, BasePermission
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework_simplejwt.views import TokenObtainPairView
 from .models import SignalGuide
-from .serializers import SignalGuideSerializer
+from .serializers import CustomTokenObtainPairSerializer, SignalGuideSerializer
 import re
 
-
+# 自訂登入序列化器：加入 name、role、employee_id
+class CustomTokenView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
 
 # 自訂權限類別：僅 A 角色可以進行寫入操作
 class IsAdminRole(BasePermission):

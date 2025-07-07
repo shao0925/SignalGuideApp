@@ -10,6 +10,22 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  String? _userRole;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserRole();
+  }
+
+  Future<void> _loadUserRole() async {
+    final storage = FlutterSecureStorage();
+    final role = await storage.read(key: 'role');
+    setState(() {
+      _userRole = role;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -36,6 +52,52 @@ class _HomePageState extends State<HomePage> {
               },
             ),
           ],
+        ),
+        drawer: Drawer(
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: [
+              const DrawerHeader(
+                decoration: BoxDecoration(
+                  color: Color(0xFF00704A),
+                ),
+                child: Text(
+                  '功能選單',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                  ),
+                ),
+              ),
+              if (_userRole == 'A') ...[
+                ListTile(
+                  leading: const Icon(Icons.person_add),
+                  title: const Text('新增帳號'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    print("點選：新增帳號");
+                    // Navigator.push(...); // 若未來要跳頁
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.note_add),
+                  title: const Text('新增工作說明書'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    print("點選：新增工作說明書");
+                  },
+                ),
+              ],
+              ListTile(
+                leading: const Icon(Icons.book),
+                title: const Text('查詢工作說明書'),
+                onTap: () {
+                  Navigator.pop(context);
+                  print("點選：查詢工作說明書");
+                },
+              ),
+            ],
+          ),
         ),
         body: Padding(
           padding: const EdgeInsets.all(20),
