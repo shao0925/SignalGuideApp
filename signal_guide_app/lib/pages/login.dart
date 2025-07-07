@@ -15,6 +15,7 @@ class _LoginPageState extends State<LoginPage> {
   final employeeidController = TextEditingController();
   final passwordController = TextEditingController();
   final storage = FlutterSecureStorage();
+  bool _obscureLoginPassword = true;
 
   Future<void> _login() async {
     print("⚡️ Login button clicked"); // ← 加這行看看有無被觸發
@@ -75,10 +76,20 @@ class _LoginPageState extends State<LoginPage> {
               const SizedBox(height: 20),
               TextField(
                 controller: passwordController,
-                obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: "Password",
-                  border: OutlineInputBorder(),
+                obscureText: _obscureLoginPassword,
+                decoration: InputDecoration(
+                  labelText: "密碼",
+                  border: const OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscureLoginPassword ? Icons.visibility : Icons.visibility_off,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscureLoginPassword = !_obscureLoginPassword;
+                      });
+                    },
+                  ),
                 ),
               ),
               const SizedBox(height: 30),

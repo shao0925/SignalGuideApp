@@ -18,6 +18,7 @@ class _CreateUserPageState extends State<CreateUserPage> {
   final nameController = TextEditingController();
   final passwordController = TextEditingController();
   String selectedRole = 'B'; // 預設角色為查詢者
+  bool _obscurePassword = true;
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
@@ -71,6 +72,17 @@ class _CreateUserPageState extends State<CreateUserPage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    employeeIdController.addListener(_generatePassword);
+  }
+
+  void _generatePassword() {
+    final id = employeeIdController.text.trim();
+    passwordController.text = id.isNotEmpty ? 'e$id' : '';
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('新增帳號')),
@@ -94,9 +106,30 @@ class _CreateUserPageState extends State<CreateUserPage> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: passwordController,
-                decoration: const InputDecoration(labelText: '密碼'),
-                obscureText: true,
-                validator: (value) => value == null || value.length < 6 ? '密碼至少 6 碼' : null,
+                decoration: InputDecoration(
+                  labelText: '密碼（自動產生）',
+                  suffixIcon: IconButton(
+                    icon: Icon(_obscurePassword ? Icons.visibility : Icons.visibility_off),
+                    onPressed: () {
+                      setState(() {
+                        _obscurePassword = !_obscurePassword;
+                      });
+                    },
+                  ),
+                ),
+                obscureText: _obscurePassword,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return '請輸入密碼';
+                  }
+                  if (value.length < 6) {
+                    return '密碼至少 6 碼';
+                  }
+                  if (!RegExp(r'[A-Za-z]').hasMatch(value)) {
+                    return '密碼中至少要有一個英文字母';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(

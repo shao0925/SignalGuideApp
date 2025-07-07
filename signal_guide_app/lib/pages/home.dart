@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'login.dart';
 import 'create_user.dart';
+import 'change_password.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -165,6 +166,17 @@ class _HomePageState extends State<HomePage> {
                   },
                 ),
               ],
+              ListTile(
+                leading: const Icon(Icons.lock),
+                title: const Text('修改密碼'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const ChangePasswordPage()),
+                  );
+                },
+              ),
             ],
           ),
         ),

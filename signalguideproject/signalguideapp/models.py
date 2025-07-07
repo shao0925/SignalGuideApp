@@ -12,6 +12,12 @@ class CustomUserManager(BaseUserManager):
             raise ValueError('必須提供員工編號')
         if not name:
             raise ValueError('必須提供姓名')
+        if not password:
+            raise ValueError('必須提供密碼')
+        
+        if len(password) < 6 or not re.search(r'[a-zA-Z]', password):
+            raise ValueError('密碼至少需 6 碼，且包含至少一個英文字母')
+        
         user = self.model(employee_id=employee_id, name=name, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
