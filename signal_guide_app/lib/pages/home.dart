@@ -10,18 +10,24 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  String? _userName;
+  String? _employeeId;
   String? _userRole;
 
   @override
   void initState() {
     super.initState();
-    _loadUserRole();
+    _loadUserInfo();
   }
 
-  Future<void> _loadUserRole() async {
+  Future<void> _loadUserInfo() async {
     final storage = FlutterSecureStorage();
+    final name = await storage.read(key: 'name');
+    final id = await storage.read(key: 'employee_id');
     final role = await storage.read(key: 'role');
     setState(() {
+      _userName = name;
+      _employeeId = id;
       _userRole = role;
     });
   }
@@ -32,16 +38,22 @@ class _HomePageState extends State<HomePage> {
       canPop: false,
       child: Scaffold(
         appBar: AppBar(
-          automaticallyImplyLeading: false,
-          title: const Text("號誌系統線上緊急故障排除指引"),
+          automaticallyImplyLeading: true,
+          titleSpacing: 12
+          ,
+          title: const Text(
+            "號誌系統線上緊急故障排除指引",
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 20),
+          ),
           actions: [
             IconButton(
               icon: const Icon(Icons.logout),
               tooltip: "登出",
               onPressed: () async {
                 final storage = FlutterSecureStorage();
-                await storage.delete(key: 'access_token');
-                await storage.delete(key: 'refresh_token');
+                await storage.deleteAll(); // 清除 access_token, refresh_token, role, name, employee_id
 
                 if (!mounted) return;
                 Navigator.pushAndRemoveUntil(
@@ -57,16 +69,31 @@ class _HomePageState extends State<HomePage> {
           child: ListView(
             padding: EdgeInsets.zero,
             children: [
-              const DrawerHeader(
-                decoration: BoxDecoration(
+              DrawerHeader(
+                decoration: const BoxDecoration(
                   color: Color(0xFF00704A),
                 ),
-                child: Text(
-                  '功能選單',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      _userName ?? '使用者',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '員工編號：${_employeeId ?? '未知'}',
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               if (_userRole == 'A') ...[
