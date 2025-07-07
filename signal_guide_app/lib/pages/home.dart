@@ -1,5 +1,6 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'login.dart';
 
 class HomePage extends StatefulWidget {
@@ -13,6 +14,8 @@ class _HomePageState extends State<HomePage> {
   String? _userName;
   String? _employeeId;
   String? _userRole;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  DateTime? _lastBackPressed; // 加在 _HomePageState 裡
 
   @override
   void initState() {
@@ -35,12 +38,39 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: false,
+      canPop: true,
+      onPopInvoked: (didPop) async {
+        if (didPop) return;
+
+        // 1. Drawer 開啟時，先關掉 Drawer
+        if (_scaffoldKey.currentState?.isDrawerOpen == true) {
+          Navigator.of(context).pop();
+          return;
+        }
+
+        // 判斷是否為第一次按返回鍵
+        final now = DateTime.now();
+        if (_lastBackPressed == null ||
+            now.difference(_lastBackPressed!) > const Duration(seconds: 2)) {
+          _lastBackPressed = now;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('再按一次返回鍵退出系統'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+          return;
+        }
+
+        // 3. 第二次返回鍵 → 結束 App
+        Navigator.of(context).maybePop();
+      },
+
       child: Scaffold(
+        key: _scaffoldKey,
         appBar: AppBar(
           automaticallyImplyLeading: true,
-          titleSpacing: 12
-          ,
+          titleSpacing: 12,
           title: const Text(
             "號誌系統線上緊急故障排除指引",
             maxLines: 2,
@@ -53,7 +83,7 @@ class _HomePageState extends State<HomePage> {
               tooltip: "登出",
               onPressed: () async {
                 final storage = FlutterSecureStorage();
-                await storage.deleteAll(); // 清除 access_token, refresh_token, role, name, employee_id
+                await storage.deleteAll();
 
                 if (!mounted) return;
                 Navigator.pushAndRemoveUntil(
@@ -103,7 +133,6 @@ class _HomePageState extends State<HomePage> {
                   onTap: () {
                     Navigator.pop(context);
                     print("點選：新增帳號");
-                    // Navigator.push(...); // 若未來要跳頁
                   },
                 ),
                 ListTile(
