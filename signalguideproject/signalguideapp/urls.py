@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import SignalGuideViewSet, home
+from .views import SignalGuideViewSet, home, create_user_view
 
 router = DefaultRouter()
 router.register(r'signal-guides', SignalGuideViewSet)
@@ -8,4 +8,5 @@ router.register(r'signal-guides', SignalGuideViewSet)
 urlpatterns = [
     path('', home),  # 加這行作為首頁
     path('', include(router.urls)),
+    path('create_user/', create_user_view, name='create_user'),
 ]
