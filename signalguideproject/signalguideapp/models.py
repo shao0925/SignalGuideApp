@@ -65,18 +65,33 @@ class CustomUser(AbstractUser):
         verbose_name_plural = '帳號管理'
         ordering = ['employee_id']
 
+# 作業類別模型（JobType）
+class JobType(models.Model):
+    name = models.CharField("作業類別名稱", max_length=50, unique=True)
+
+    # 加入時間戳記
+    created_at = models.DateTimeField("建立時間", auto_now_add=True)
+    updated_at = models.DateTimeField("最後更新", auto_now=True)
+
+    class Meta:
+        verbose_name = "作業類別"
+        verbose_name_plural = "作業類別列表"
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
 # 工作說明書模型（SignalGuide）
 class SignalGuide(models.Model):
-    # 作業類別選項（主畫面五大分類）
-    JOB_TYPE_CHOICES = [
-        ('行政管理', '行政管理'),
-        ('故障檢修', '故障檢修'),
-        ('特別檢修', '特別檢修'),
-        ('預防檢修', '預防檢修'),
-        ('維修管理', '維修管理'),
-    ]
 
-    job_type = models.CharField("作業類別", max_length=20, choices=JOB_TYPE_CHOICES)
+    job_type = models.ForeignKey(
+        JobType,
+        verbose_name="作業類別",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='guides'
+    )
     system = models.CharField("系統", max_length=100)
     subsystem = models.CharField("子系統", max_length=100, blank=True)
     equipment_type = models.CharField("設備類別", max_length=100, blank=True)

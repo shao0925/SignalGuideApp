@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser, SignalGuide, Device, FaultCase, ProcedureStep
+from .models import CustomUser, JobType, SignalGuide, Device, FaultCase, ProcedureStep
 
 # ----------- 使用者管理後台 -----------
 class CustomUserAdmin(UserAdmin):
@@ -23,6 +23,13 @@ class CustomUserAdmin(UserAdmin):
 
     search_fields = ('employee_id', 'name')
     ordering = ('employee_id',)
+
+# ----------- 作業類別管理後台 -----------
+class JobTypeAdmin(admin.ModelAdmin):
+    list_display = ('name', 'created_at', 'updated_at')
+    search_fields = ('name',)
+    ordering = ('name',)
+    readonly_fields = ('created_at', 'updated_at')
 
 # ----------- 工作說明書管理後台 -----------
 class SignalGuideAdmin(admin.ModelAdmin):
@@ -66,6 +73,7 @@ class ProcedureStepAdmin(admin.ModelAdmin):
 
 # ----------- 註冊模型與對應後台管理類 -----------
 admin.site.register(CustomUser, CustomUserAdmin)
+admin.site.register(JobType, JobTypeAdmin)
 admin.site.register(SignalGuide, SignalGuideAdmin)
 admin.site.register(Device, DeviceAdmin)
 admin.site.register(FaultCase, FaultCaseAdmin)
