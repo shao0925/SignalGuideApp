@@ -100,7 +100,7 @@ class SignalGuide(models.Model):
     department = models.CharField("權責股", max_length=100, blank=True)
     owner = models.CharField("負責人員", max_length=100, blank=True)
     file = models.FileField("上傳檔案", upload_to='manuals/', blank=True)
-    is_frequently_used = models.BooleanField("是否為熱門文件", default=False)
+    is_pinned = models.BooleanField("是否置頂", default=False)
 
     # 加入時間戳記
     created_at = models.DateTimeField("建立時間", auto_now_add=True)
