@@ -88,7 +88,7 @@ class SignalGuideViewSet(viewsets.ModelViewSet):
 
 # JobType ViewSet
 class JobTypeViewSet(viewsets.ModelViewSet):
-    queryset = JobType.objects.all().order_by('-created_at')  # 依建立時間新到舊排序
+    queryset = JobType.objects.all().order_by('created_at')  # 依建立時間新到舊排序
     serializer_class = JobTypeSerializer
     permission_classes = [IsAuthenticated, IsAdminRole]
 
