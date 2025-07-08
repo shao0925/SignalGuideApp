@@ -77,18 +77,13 @@ class _GuideFormPageState extends State<GuideFormPage> {
       },
       body: jsonEncode({
         'job_type': widget.jobTypeId,
-        'category': widget.jobTypeName,
-        'system': _useCustomSystem
-            ? _systemController.text.trim()
-            : _system,
-        'subsystem': _useCustomSubsystem
-            ? _subsystemController.text.trim()
-            : _subsystem,
-        'device_type': _deviceTypeController.text,
-        'doc_code': fullDocCode,
-        'doc_name': _docNameController.text,
+        'system': _systemController.text.isNotEmpty ? _systemController.text : _system,
+        'subsystem': _subsystemController.text.isNotEmpty ? _subsystemController.text : _subsystem,
+        'equipment_type': _deviceTypeController.text,  // ✅ 修正名稱
+        'doc_number': fullDocCode,                     // ✅ 修正名稱
+        'title': _docNameController.text,              // ✅ 修正名稱
         'department': _deptController.text,
-        'responsible_person': _personController.text,
+        'owner': _personController.text,
       }),
     );
 

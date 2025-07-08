@@ -84,7 +84,7 @@ class SignalGuideViewSet(viewsets.ModelViewSet):
         job_type = self.request.query_params.get('job_type')
         if job_type is not None:
             queryset = queryset.filter(job_type__id=job_type)
-        return queryset
+        return queryset.order_by('doc_number')
 
 # JobType ViewSet
 class JobTypeViewSet(viewsets.ModelViewSet):

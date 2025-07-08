@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
-import 'guide_form.dart'; // 請確認 guide_form.dart 有實作 GuideFormPage
+import 'guide_form.dart';
 
 class GuideListPage extends StatefulWidget {
   final int jobTypeId;
@@ -21,13 +20,30 @@ class GuideListPage extends StatefulWidget {
 
 class _GuideListPageState extends State<GuideListPage> {
   final storage = FlutterSecureStorage();
-  List<String> _guideTitles = [];
+  List<Map<String, dynamic>> _guides = [];
   bool _isLoading = true;
+  String? userRole;
 
   @override
   void initState() {
     super.initState();
     _fetchGuides();
+    _loadUserRole();
+  }
+
+  Future<void> _loadUserRole() async {
+    final token = await storage.read(key: 'access_token');
+    if (token != null) {
+      final parts = token.split('.');
+      if (parts.length == 3) {
+        final payload =
+        utf8.decode(base64Url.decode(base64Url.normalize(parts[1])));
+        final decoded = jsonDecode(payload);
+        setState(() {
+          userRole = decoded['role'];
+        });
+      }
+    }
   }
 
   Future<void> _fetchGuides() async {
@@ -44,8 +60,7 @@ class _GuideListPageState extends State<GuideListPage> {
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
         setState(() {
-          _guideTitles =
-              data.map<String>((item) => item['title'] as String).toList();
+          _guides = List<Map<String, dynamic>>.from(data);
           _isLoading = false;
         });
       } else if (response.statusCode == 401) {
@@ -64,26 +79,145 @@ class _GuideListPageState extends State<GuideListPage> {
     }
   }
 
+  void _showGuideOptions(BuildContext context, Map<String, dynamic> guide) {
+    if (userRole != 'A') return;
+
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.edit),
+              title: const Text('修改（尚未開放）'),
+              onTap: () {
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete),
+              title: const Text('刪除'),
+              onTap: () {
+                Navigator.pop(context);
+                _deleteGuide(guide['id']);
+              },
+            ),
+            ListTile(
+              leading: Icon(
+                guide['is_pinned'] ? Icons.push_pin : Icons.push_pin_outlined,
+              ),
+              title: Text(guide['is_pinned'] ? '取消置頂' : '設為置頂'),
+              onTap: () {
+                Navigator.pop(context);
+                _togglePin(guide['id'], !guide['is_pinned']);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _deleteGuide(int id) async {
+    final token = await storage.read(key: 'access_token');
+    final url = Uri.parse('http://10.0.2.2:8000/api/signal-guides/$id/');
+
+    final confirm = await showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('確認刪除'),
+        content: const Text('確定要刪除此說明書嗎？'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('取消')),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('刪除')),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      final res = await http.delete(
+        url,
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (res.statusCode == 204) {
+        _fetchGuides();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('刪除失敗')),
+        );
+      }
+    }
+  }
+
+  Future<void> _togglePin(int id, bool pin) async {
+    final token = await storage.read(key: 'access_token');
+    final url = Uri.parse('http://10.0.2.2:8000/api/signal-guides/$id/');
+
+    final res = await http.patch(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'is_pinned': pin}),
+    );
+
+    if (res.statusCode == 200) {
+      _fetchGuides();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('更新置頂狀態失敗')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('${widget.jobTypeName} - 工作說明書')),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : (_guideTitles.isEmpty
+          : (_guides.isEmpty
           ? const Center(child: Text('尚未有工作說明書'))
           : ListView.builder(
-        itemCount: _guideTitles.length,
+        itemCount: _guides.length,
         itemBuilder: (context, index) {
+          final guide = _guides[index];
+          final isPinned = guide['is_pinned'] == true;
+
           return ListTile(
-            leading: const Icon(Icons.description),
-            title: Text(_guideTitles[index]),
+            leading: Icon(Icons.description,
+                color: isPinned ? Colors.orange : null),
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  guide['title'],
+                  style: isPinned
+                      ? const TextStyle(fontWeight: FontWeight.bold)
+                      : null,
+                ),
+                if (guide['code'] != null)
+                  Text(
+                    guide['code'],
+                    style: const TextStyle(
+                        fontSize: 12, color: Colors.grey),
+                  ),
+              ],
+            ),
+            trailing: isPinned
+                ? const Text('置頂',
+                style: TextStyle(color: Colors.orange))
+                : null,
+            onLongPress: userRole == 'A'
+                ? () => _showGuideOptions(context, guide)
+                : null,
           );
         },
       )),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: userRole == 'A'
+          ? FloatingActionButton(
         onPressed: () async {
-          // 前往新增說明書頁面
           final result = await Navigator.push(
             context,
             MaterialPageRoute(
@@ -93,15 +227,12 @@ class _GuideListPageState extends State<GuideListPage> {
               ),
             ),
           );
-
-          // 若有新增成功則重新刷新列表
-          if (result == true) {
-            _fetchGuides();
-          }
+          if (result == true) _fetchGuides();
         },
         child: const Icon(Icons.add),
         tooltip: '新增說明書',
-      ),
+      )
+          : null,
     );
   }
 }
