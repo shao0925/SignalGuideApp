@@ -1,10 +1,12 @@
 # signalguideapp/serializers.py
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .models import SignalGuide
+from .models import SignalGuide, JobType
 
 # SignalGuide 序列化器
 class SignalGuideSerializer(serializers.ModelSerializer):
+    job_type_display = serializers.CharField(source='job_type.name', read_only=True)
+    
     class Meta:
         model = SignalGuide
         fields = '__all__'
@@ -25,3 +27,9 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         data['role'] = self.user.role
         data['employee_id'] = self.user.employee_id
         return data
+
+# JobType 序列化器
+class JobTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = JobType
+        fields = ['id', 'name']

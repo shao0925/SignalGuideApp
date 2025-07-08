@@ -77,12 +77,21 @@ def change_password(request):
 class SignalGuideViewSet(viewsets.ModelViewSet):
     queryset = SignalGuide.objects.all()
     serializer_class = SignalGuideSerializer
-    permission_classes = [IsAuthenticated, IsAdminRole]  # 加上自訂權限
+    permission_classes = [IsAuthenticated, IsAdminRole]
 
+    def get_queryset(self):
+        queryset = SignalGuide.objects.all()
+        job_type = self.request.query_params.get('job_type')
+        if job_type is not None:
+            queryset = queryset.filter(job_type__id=job_type)
+        return queryset
+
+# JobType ViewSet
 class JobTypeViewSet(viewsets.ModelViewSet):
-    queryset = JobType.objects.all()
+    queryset = JobType.objects.all().order_by('-created_at')  # 依建立時間新到舊排序
     serializer_class = JobTypeSerializer
     permission_classes = [IsAuthenticated, IsAdminRole]
 
+# Home view
 def home(request):
     return HttpResponse("🎉 歡迎來到 Signal Guide 系統 API 後端")
