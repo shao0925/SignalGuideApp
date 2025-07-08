@@ -33,8 +33,8 @@ class JobTypeAdmin(admin.ModelAdmin):
 
 # ----------- 工作說明書管理後台 -----------
 class SignalGuideAdmin(admin.ModelAdmin):
-    list_display = ('doc_number', 'title', 'job_type', 'system', 'department', 'owner', 'created_at', 'is_frequently_used')
-    list_filter = ('job_type', 'system', 'department', 'is_frequently_used')
+    list_display = ('doc_number', 'title', 'job_type', 'system', 'department', 'owner', 'created_at', 'is_pinned')
+    list_filter = ('job_type', 'system', 'department', 'is_pinned')
     search_fields = ('doc_number', 'title', 'system', 'subsystem', 'equipment_type', 'owner')
     ordering = ('-created_at',)
     readonly_fields = ('created_at', 'updated_at')
