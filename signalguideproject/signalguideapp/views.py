@@ -6,8 +6,8 @@ from rest_framework.permissions import IsAuthenticated, BasePermission
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework_simplejwt.views import TokenObtainPairView
-from .models import SignalGuide
-from .serializers import CustomTokenObtainPairSerializer, SignalGuideSerializer
+from .models import SignalGuide, JobType
+from .serializers import CustomTokenObtainPairSerializer, SignalGuideSerializer, JobTypeSerializer
 import re
 
 # 自訂登入序列化器：加入 name、role、employee_id
@@ -78,6 +78,11 @@ class SignalGuideViewSet(viewsets.ModelViewSet):
     queryset = SignalGuide.objects.all()
     serializer_class = SignalGuideSerializer
     permission_classes = [IsAuthenticated, IsAdminRole]  # 加上自訂權限
+
+class JobTypeViewSet(viewsets.ModelViewSet):
+    queryset = JobType.objects.all()
+    serializer_class = JobTypeSerializer
+    permission_classes = [IsAuthenticated, IsAdminRole]
 
 def home(request):
     return HttpResponse("🎉 歡迎來到 Signal Guide 系統 API 後端")

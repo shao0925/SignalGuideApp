@@ -1,16 +1,15 @@
-# signalguideapp/urls.py
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from . import views
-from .views import SignalGuideViewSet, home, create_user_view, CustomTokenView
+from .views import SignalGuideViewSet, JobTypeViewSet, CustomTokenView, home, create_user_view, change_password
 
 router = DefaultRouter()
 router.register(r'signal-guides', SignalGuideViewSet)
+router.register(r'jobtypes', JobTypeViewSet)
 
 urlpatterns = [
-    path('', home),  # 加這行作為首頁
+    path('', home),
     path('', include(router.urls)),
-    path('create_user/', create_user_view, name='create_user'),
     path('token/', CustomTokenView.as_view(), name='token_obtain_pair'),
-    path('change_password/', views.change_password, name='change_password'),
+    path('change_password/', change_password, name='change_password'),
+    path('create_user/', create_user_view, name='create_user'),
 ]

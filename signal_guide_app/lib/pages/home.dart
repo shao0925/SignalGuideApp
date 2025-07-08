@@ -1,6 +1,8 @@
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import 'login.dart';
 import 'create_user.dart';
@@ -18,16 +20,18 @@ class _HomePageState extends State<HomePage> {
   String? _employeeId;
   String? _userRole;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  DateTime? _lastBackPressed; // 加在 _HomePageState 裡
+  DateTime? _lastBackPressed;
+  final storage = FlutterSecureStorage();
+  List<Map<String, dynamic>> _jobTypes = [];
 
   @override
   void initState() {
     super.initState();
     _loadUserInfo();
+    _fetchJobTypes();
   }
 
   Future<void> _loadUserInfo() async {
-    final storage = FlutterSecureStorage();
     final name = await storage.read(key: 'name');
     final id = await storage.read(key: 'employee_id');
     final role = await storage.read(key: 'role');
@@ -38,20 +42,40 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  Future<void> _fetchJobTypes() async {
+    final token = await storage.read(key: 'access_token');
+    print('access token: $token');
+    final url = Uri.parse('http://10.0.2.2:8000/api/jobtypes/');
+    try {
+      final response = await http.get(url, headers: {
+        'Authorization': 'Bearer $token',
+      });
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          _jobTypes = data.map((item) => {
+            'id': item['id'],
+            'name': item['name'],
+          }).toList();
+        });
+      } else {
+        print('取得分類失敗：${response.statusCode}');
+      }
+    } catch (e) {
+      print('錯誤：$e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
       canPop: true,
       onPopInvoked: (didPop) async {
         if (didPop) return;
-
-        // 1. Drawer 開啟時，先關掉 Drawer
         if (_scaffoldKey.currentState?.isDrawerOpen == true) {
           Navigator.of(context).pop();
           return;
         }
-
-        // 判斷是否為第一次按返回鍵
         final now = DateTime.now();
         if (_lastBackPressed == null ||
             now.difference(_lastBackPressed!) > const Duration(seconds: 2)) {
@@ -64,11 +88,8 @@ class _HomePageState extends State<HomePage> {
           );
           return;
         }
-
-        // 3. 第二次返回鍵 → 結束 App
         Navigator.of(context).maybePop();
       },
-
       child: Scaffold(
         key: _scaffoldKey,
         appBar: AppBar(
@@ -85,9 +106,7 @@ class _HomePageState extends State<HomePage> {
               icon: const Icon(Icons.logout),
               tooltip: "登出",
               onPressed: () async {
-                final storage = FlutterSecureStorage();
                 await storage.deleteAll();
-
                 if (!mounted) return;
                 Navigator.pushAndRemoveUntil(
                   context,
@@ -103,9 +122,7 @@ class _HomePageState extends State<HomePage> {
             padding: EdgeInsets.zero,
             children: [
               DrawerHeader(
-                decoration: const BoxDecoration(
-                  color: Color(0xFF00704A),
-                ),
+                decoration: const BoxDecoration(color: Color(0xFF00704A)),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -129,15 +146,13 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
               ),
-              if (_employeeId == 'A0000') // ✅ 只有特定員工編號才顯示
+              if (_employeeId == 'A0000')
                 ListTile(
                   leading: const Icon(Icons.admin_panel_settings),
                   title: const Text('後台管理'),
                   onTap: () async {
                     Navigator.pop(context);
                     const url = 'http://10.0.2.2:8000/admin/';
-                    // 嘗試用瀏覽器開啟（使用 url_launcher 套件）
-                    // 若尚未加入依賴請見下方說明
                     if (!await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication)) {
                       throw Exception('無法開啟後台管理');
                     }
@@ -160,7 +175,6 @@ class _HomePageState extends State<HomePage> {
                   title: const Text('新增帳號'),
                   onTap: () {
                     Navigator.pop(context);
-                    print("點選：新增帳號");
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const CreateUserPage()),
@@ -184,29 +198,6 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              GestureDetector(
-                onTap: () => print("查看工作說明書"),
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF00704A),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.description, color: Colors.white),
-                      const SizedBox(width: 12),
-                      const Expanded(
-                        child: Text(
-                          "QM系WI92073高運量號誌系統線上故障緊急排除工作說明書(16)",
-                          style: TextStyle(color: Colors.white, fontSize: 16),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 30),
               const Text("請選擇作業類別：", style: TextStyle(fontSize: 16)),
               const SizedBox(height: 10),
               Expanded(
@@ -214,13 +205,9 @@ class _HomePageState extends State<HomePage> {
                   crossAxisCount: 2,
                   crossAxisSpacing: 16,
                   mainAxisSpacing: 16,
-                  children: [
-                    _buildCategoryButton("行政管理", Icons.account_balance),
-                    _buildCategoryButton("故障檢修", Icons.build),
-                    _buildCategoryButton("特別檢修", Icons.engineering),
-                    _buildCategoryButton("預防檢修", Icons.shield),
-                    _buildCategoryButton("維修管理", Icons.settings),
-                  ],
+                  children: _jobTypes.map((job) {
+                    return _buildCategoryButton(job['name'], Icons.work, job['id']);
+                  }).toList(),
                 ),
               ),
             ],
@@ -230,9 +217,12 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildCategoryButton(String label, IconData icon) {
+  Widget _buildCategoryButton(String label, IconData icon, int id) {
     return ElevatedButton(
-      onPressed: () => print("點選分類：$label"),
+      onPressed: () {
+        print("點選分類：$label（ID: $id）");
+        // TODO: 導向到該類別的工作說明書列表頁面
+      },
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
