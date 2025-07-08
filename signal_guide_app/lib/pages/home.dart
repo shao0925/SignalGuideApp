@@ -207,7 +207,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               const SizedBox(height: 30),
-              const Text("請選擇問題分類：", style: TextStyle(fontSize: 16)),
+              const Text("請選擇作業類別：", style: TextStyle(fontSize: 16)),
               const SizedBox(height: 10),
               Expanded(
                 child: GridView.count(
@@ -215,11 +215,11 @@ class _HomePageState extends State<HomePage> {
                   crossAxisSpacing: 16,
                   mainAxisSpacing: 16,
                   children: [
-                    _buildCategoryButton("電源系統", Icons.bolt),
-                    _buildCategoryButton("通訊模組", Icons.wifi),
-                    _buildCategoryButton("控制器", Icons.memory),
-                    _buildCategoryButton("燈號問題", Icons.traffic),
-                    _buildCategoryButton("現場回報", Icons.report_problem),
+                    _buildCategoryButton("行政管理", Icons.account_balance),
+                    _buildCategoryButton("故障檢修", Icons.build),
+                    _buildCategoryButton("特別檢修", Icons.engineering),
+                    _buildCategoryButton("預防檢修", Icons.shield),
+                    _buildCategoryButton("維修管理", Icons.settings),
                   ],
                 ),
               ),

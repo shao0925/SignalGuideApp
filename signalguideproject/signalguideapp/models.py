@@ -65,18 +65,87 @@ class CustomUser(AbstractUser):
         verbose_name_plural = '帳號管理'
         ordering = ['employee_id']
 
-# 工作說明書模型
+# 工作說明書模型（SignalGuide）
 class SignalGuide(models.Model):
-    category = models.CharField(max_length=100)       # 類別
-    title = models.CharField(max_length=200)          # 工作說明書名稱
-    device_name = models.CharField(max_length=200)    # 設備名稱
-    error_description = models.TextField()            # 故障情形
-    file = models.FileField(upload_to='manuals/')     # 上傳 PDF
+    # 作業類別選項（主畫面五大分類）
+    JOB_TYPE_CHOICES = [
+        ('行政管理', '行政管理'),
+        ('故障檢修', '故障檢修'),
+        ('特別檢修', '特別檢修'),
+        ('預防檢修', '預防檢修'),
+        ('維修管理', '維修管理'),
+    ]
+
+    job_type = models.CharField("作業類別", max_length=20, choices=JOB_TYPE_CHOICES)
+    system = models.CharField("系統", max_length=100)
+    subsystem = models.CharField("子系統", max_length=100, blank=True)
+    equipment_type = models.CharField("設備類別", max_length=100, blank=True)
+    doc_number = models.CharField("文件編號", max_length=50, unique=True)
+    title = models.CharField("文件名稱", max_length=200)
+    department = models.CharField("權責股", max_length=100, blank=True)
+    owner = models.CharField("負責人員", max_length=100, blank=True)
+    file = models.FileField("上傳檔案", upload_to='manuals/', blank=True)
+    is_frequently_used = models.BooleanField("是否為熱門文件", default=False)
+
+    # 加入時間戳記
+    created_at = models.DateTimeField("建立時間", auto_now_add=True)
+    updated_at = models.DateTimeField("最後更新", auto_now=True)
 
     def __str__(self):
-        return self.title
-    
+        return f"{self.doc_number} - {self.title}"
+
     class Meta:
         verbose_name = '工作說明書'
         verbose_name_plural = '工作說明書列表'
-        ordering = ['category', 'title']
+        ordering = ['job_type', 'system', 'title']
+
+# 設備模型（Device）
+class Device(models.Model):
+    guide = models.ForeignKey(SignalGuide, on_delete=models.CASCADE, related_name='devices')
+    name = models.CharField("設備名稱", max_length=200)
+    
+    # 加入時間戳記
+    created_at = models.DateTimeField("建立時間", auto_now_add=True)
+    updated_at = models.DateTimeField("最後更新", auto_now=True)
+
+    def __str__(self):
+        return self.name
+    
+    class Meta:
+        verbose_name = '設備'
+        verbose_name_plural = '設備列表'
+
+# 設備故障案例模型（FaultCase）
+class FaultCase(models.Model):
+    device = models.ForeignKey(Device, on_delete=models.CASCADE, related_name='faults')
+    description = models.TextField("故障徵狀")
+
+    # 加入時間戳記
+    created_at = models.DateTimeField("建立時間", auto_now_add=True)
+    updated_at = models.DateTimeField("最後更新", auto_now=True)
+
+    def __str__(self):
+        return self.description[:30]
+    
+    class Meta:
+        verbose_name = '設備故障案例'
+        verbose_name_plural = '設備故障案例列表'
+
+
+# 故障處理步驟模型（ProcedureStep）
+class ProcedureStep(models.Model):
+    fault = models.ForeignKey(FaultCase, on_delete=models.CASCADE, related_name='steps')
+    step_order = models.PositiveIntegerField("步驟順序")
+    instruction = models.TextField("處理說明")
+
+    # 加入時間戳記
+    created_at = models.DateTimeField("建立時間", auto_now_add=True)
+    updated_at = models.DateTimeField("最後更新", auto_now=True)
+
+    class Meta:
+        ordering = ['step_order']
+        verbose_name = '故障處理步驟'
+        verbose_name_plural = '故障處理步驟列表'
+
+    def __str__(self):
+        return f"Step {self.step_order}"
