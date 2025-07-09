@@ -82,9 +82,19 @@ class SignalGuideViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = SignalGuide.objects.all()
         job_type = self.request.query_params.get('job_type')
+        is_pinned = self.request.query_params.get('is_pinned')
+
         if job_type is not None:
             queryset = queryset.filter(job_type__id=job_type)
+
+        if is_pinned is not None:
+            if is_pinned.lower() == 'true':
+                queryset = queryset.filter(is_pinned=True)
+            elif is_pinned.lower() == 'false':
+                queryset = queryset.filter(is_pinned=False)
+
         return queryset.order_by('doc_number')
+
 
 # JobType ViewSet
 class JobTypeViewSet(viewsets.ModelViewSet):

@@ -24,12 +24,14 @@ class _HomePageState extends State<HomePage> {
   DateTime? _lastBackPressed;
   final storage = FlutterSecureStorage();
   List<Map<String, dynamic>> _jobTypes = [];
+  List<Map<String, dynamic>> _pinnedGuides = [];
 
   @override
   void initState() {
     super.initState();
     _loadUserInfo();
     _fetchJobTypes();
+    _fetchPinnedGuides();
   }
 
   Future<void> _loadUserInfo() async {
@@ -68,6 +70,27 @@ class _HomePageState extends State<HomePage> {
         );
       } else {
         print('取得分類失敗：${response.statusCode}');
+      }
+    } catch (e) {
+      print('錯誤：$e');
+    }
+  }
+
+  Future<void> _fetchPinnedGuides() async {
+    final token = await storage.read(key: 'access_token');
+    final url = Uri.parse('http://10.0.2.2:8000/api/signal-guides/?is_pinned=true');
+
+    try {
+      final response = await http.get(url, headers: {
+        'Authorization': 'Bearer $token',
+      });
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          _pinnedGuides = List<Map<String, dynamic>>.from(data);
+        });
+      } else {
+        print('取得置頂說明書失敗：${response.statusCode}');
       }
     } catch (e) {
       print('錯誤：$e');
@@ -186,171 +209,129 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: true,
-      onPopInvoked: (didPop) async {
-        if (didPop) return;
-        if (_scaffoldKey.currentState?.isDrawerOpen == true) {
-          Navigator.of(context).pop();
-          return;
-        }
-        final now = DateTime.now();
-        if (_lastBackPressed == null ||
-            now.difference(_lastBackPressed!) > const Duration(seconds: 2)) {
-          _lastBackPressed = now;
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('再按一次返回鍵退出系統'),
-              duration: Duration(seconds: 2),
-            ),
-          );
-          return;
-        }
-        Navigator.of(context).maybePop();
-      },
-      child: Scaffold(
-        key: _scaffoldKey,
-        appBar: AppBar(
-          automaticallyImplyLeading: true,
-          titleSpacing: 12,
-          title: const Text(
-            "號誌系統線上緊急故障排除指引",
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 20),
+    return Scaffold(
+      key: _scaffoldKey,
+      appBar: AppBar(
+        title: const Text("號誌系統線上緊急故障排除指引"),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: "登出",
+            onPressed: () async {
+              await storage.deleteAll();
+              if (!mounted) return;
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => const LoginPage()),
+                    (route) => false,
+              );
+            },
           ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.logout),
-              tooltip: "登出",
-              onPressed: () async {
-                await storage.deleteAll();
-                if (!mounted) return;
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => const LoginPage()),
-                      (route) => false,
-                );
+        ],
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: const BoxDecoration(color: Color(0xFF00704A)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    _userName ?? '使用者',
+                    style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Text('員工編號：${_employeeId ?? '未知'}', style: const TextStyle(color: Colors.white70, fontSize: 16)),
+                ],
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.lock),
+              title: const Text('修改密碼'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const ChangePasswordPage()));
               },
             ),
-          ],
-        ),
-        drawer: Drawer(
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: [
-              DrawerHeader(
-                decoration: const BoxDecoration(color: Color(0xFF00704A)),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      _userName ?? '使用者',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '員工編號：${_employeeId ?? '未知'}',
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (_employeeId == 'A0000')
-                ListTile(
-                  leading: const Icon(Icons.admin_panel_settings),
-                  title: const Text('後台管理'),
-                  onTap: () async {
-                    Navigator.pop(context);
-                    const url = 'http://10.0.2.2:8000/admin/';
-                    if (!await launchUrl(Uri.parse(url),
-                        mode: LaunchMode.externalApplication)) {
-                      throw Exception('無法開啟後台管理');
-                    }
-                  },
-                ),
+            if (_userRole == 'A') ...[
               ListTile(
-                leading: const Icon(Icons.lock),
-                title: const Text('修改密碼'),
+                leading: const Icon(Icons.person_add),
+                title: const Text('新增帳號'),
                 onTap: () {
                   Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const ChangePasswordPage()),
-                  );
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const CreateUserPage()));
                 },
               ),
-              if (_userRole == 'A') ...[
-                ListTile(
-                  leading: const Icon(Icons.person_add),
-                  title: const Text('新增帳號'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const CreateUserPage()),
-                    );
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.category),
-                  title: const Text('新增作業類別'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.pushNamed(context, '/add-jobtype').then((result) {
-                      if (result == true) {
-                        _fetchJobTypes();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("✅ 已新增類別")),
-                        );
-                      }
-                    });
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.note_add),
-                  title: const Text('新增工作說明書'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    print("點選：新增工作說明書");
-                  },
-                ),
-              ],
-            ],
-          ),
+              ListTile(
+                leading: const Icon(Icons.category),
+                title: const Text('新增作業類別'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushNamed(context, '/add-jobtype').then((result) {
+                    if (result == true) {
+                      _fetchJobTypes();
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("✅ 已新增類別")));
+                    }
+                  });
+                },
+              ),
+            ]
+          ],
         ),
-        body: RefreshIndicator(
-          onRefresh: _fetchJobTypes,
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Text("請選擇作業類別：", style: TextStyle(fontSize: 16)),
-                const SizedBox(height: 10),
-                Expanded(
-                  child: GridView.count(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                    children: _jobTypes.map((job) {
-                      return _buildCategoryButton(
-                          job['name'], Icons.work, job['id']);
-                    }).toList(),
-                  ),
+      ),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          await _fetchJobTypes();
+          await _fetchPinnedGuides();
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: ListView(
+            children: [
+              if (_pinnedGuides.isNotEmpty) ...[
+                const Text("📌 置頂工作說明書", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                Column(
+                  children: _pinnedGuides.map((guide) {
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      elevation: 3,
+                      child: ListTile(
+                        title: Text(guide['title'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
+                        subtitle: Text(guide['doc_number'] ?? ''),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => GuideListPage(
+                                jobTypeId: guide['job_type'] ?? 0,
+                                jobTypeName: '相關類別',
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  }).toList(),
                 ),
+                const SizedBox(height: 20),
               ],
-            ),
+              const Text("請選擇作業類別：", style: TextStyle(fontSize: 16)),
+              const SizedBox(height: 10),
+              GridView.count(
+                crossAxisCount: 2,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                children: _jobTypes.map((job) {
+                  return _buildCategoryButton(job['name'], Icons.work, job['id']);
+                }).toList(),
+              ),
+            ],
           ),
         ),
       ),
@@ -363,10 +344,7 @@ class _HomePageState extends State<HomePage> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => GuideListPage(
-              jobTypeId: id,
-              jobTypeName: label,
-            ),
+            builder: (context) => GuideListPage(jobTypeId: id, jobTypeName: label),
           ),
         );
       },

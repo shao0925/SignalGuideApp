@@ -41,7 +41,7 @@ class _GuideListPageState extends State<GuideListPage> {
         setState(() {
           userRole = decoded['role'];
         });
-        print('解析後角色：$userRole'); // Debug
+        print('解析後角色：$userRole');
       }
     }
   }
@@ -60,7 +60,6 @@ class _GuideListPageState extends State<GuideListPage> {
         final List<dynamic> data = jsonDecode(response.body);
         setState(() {
           _guides = List<Map<String, dynamic>>.from(data);
-          // Optional: 排序置頂優先
           _guides.sort((a, b) {
             if (a['is_pinned'] == b['is_pinned']) return 0;
             return a['is_pinned'] == true ? -1 : 1;
@@ -96,26 +95,25 @@ class _GuideListPageState extends State<GuideListPage> {
               leading: const Icon(Icons.edit),
               title: const Text('修改'),
               onTap: () async {
-                Navigator.pop(context);
+                Navigator.of(context, rootNavigator: true).pop();
                 final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => GuideFormPage(
                       jobTypeId: widget.jobTypeId,
                       jobTypeName: widget.jobTypeName,
-                      guide: guide, // ✅ 傳入該筆資料
+                      guide: guide,
                     ),
                   ),
                 );
                 if (result == true) _fetchGuides();
               },
             ),
-
             ListTile(
               leading: const Icon(Icons.delete),
               title: const Text('刪除'),
               onTap: () {
-                Navigator.pop(context);
+                Navigator.of(context, rootNavigator: true).pop();
                 _deleteGuide(guide['id']);
               },
             ),
@@ -124,9 +122,9 @@ class _GuideListPageState extends State<GuideListPage> {
                 guide['is_pinned'] ? Icons.push_pin : Icons.push_pin_outlined,
               ),
               title: Text(guide['is_pinned'] ? '取消置頂' : '設為置頂'),
-              onTap: () {
-                Navigator.pop(context);
-                _togglePin(guide['id'], !guide['is_pinned']);
+              onTap: () async {
+                Navigator.of(context, rootNavigator: true).pop();
+                await _togglePin(guide['id'], !guide['is_pinned']);
               },
             ),
           ],
@@ -181,6 +179,7 @@ class _GuideListPageState extends State<GuideListPage> {
 
     if (res.statusCode == 200) {
       _fetchGuides();
+      Navigator.pop(context, true);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('更新置頂狀態失敗')),
