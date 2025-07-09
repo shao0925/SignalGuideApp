@@ -178,6 +178,16 @@ class _DeviceListPageState extends State<DeviceListPage> {
           return ListTile(
             leading: const Icon(Icons.settings),
             title: Text(device['name'] ?? '未命名設備'),
+            onTap: () {
+              Navigator.pushNamed(
+                context,
+                '/fault-cases',
+                arguments: {
+                  'deviceId': device['id'],
+                  'deviceName': device['name'],
+                },
+              );
+            },
             onLongPress: userRole == 'A' ? () => _showDeviceOptions(device) : null,
           );
         },

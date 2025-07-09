@@ -1,7 +1,7 @@
 # signalguideapp/serializers.py
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .models import SignalGuide, JobType, Device
+from .models import SignalGuide, JobType, Device, FaultCase
 
 # SignalGuide 序列化器
 class SignalGuideSerializer(serializers.ModelSerializer):
@@ -39,4 +39,10 @@ class JobTypeSerializer(serializers.ModelSerializer):
 class DeviceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Device
+        fields = '__all__'
+
+# FaultCase 序列化器
+class FaultCaseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FaultCase
         fields = '__all__'

@@ -6,8 +6,8 @@ from rest_framework.permissions import IsAuthenticated, BasePermission
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework_simplejwt.views import TokenObtainPairView
-from .models import SignalGuide, JobType, Device
-from .serializers import CustomTokenObtainPairSerializer, SignalGuideSerializer, JobTypeSerializer, DeviceSerializer
+from .models import SignalGuide, JobType, Device, FaultCase
+from .serializers import CustomTokenObtainPairSerializer, SignalGuideSerializer, JobTypeSerializer, DeviceSerializer, FaultCaseSerializer
 import re
 
 # Home view
@@ -120,3 +120,16 @@ class DeviceViewSet(viewsets.ModelViewSet):
     queryset = Device.objects.all()
     serializer_class = DeviceSerializer
     permission_classes = [IsAuthenticated, IsAdminRole]
+
+# FaultCase ViewSet
+class FaultCaseViewSet(viewsets.ModelViewSet):
+    queryset = FaultCase.objects.all()
+    serializer_class = FaultCaseSerializer
+    permission_classes = [IsAuthenticated, IsAdminRole]
+
+    def get_queryset(self):
+        queryset = FaultCase.objects.all()
+        device_id = self.request.query_params.get('device_id')
+        if device_id:
+            queryset = queryset.filter(device__id=device_id)
+        return queryset.order_by('-created_at')
