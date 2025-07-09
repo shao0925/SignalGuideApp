@@ -213,7 +213,12 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        title: const Text("號誌系統線上緊急故障排除指引"),
+        title: const Text(
+          "號誌系統線上緊急故障排除指引",
+          style: TextStyle(fontSize: 18),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),

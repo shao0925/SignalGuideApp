@@ -57,7 +57,24 @@ class _DeviceListPageState extends State<DeviceListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('${widget.guideTitle} - 設備清單')),
+      appBar: AppBar(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              widget.guideTitle,
+              style: const TextStyle(fontSize: 16),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const Text(
+              '設備清單',
+              style: TextStyle(fontSize: 12),
+            ),
+          ],
+        ),
+      ),
+
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : (_devices.isEmpty
