@@ -94,11 +94,23 @@ class _GuideListPageState extends State<GuideListPage> {
           children: [
             ListTile(
               leading: const Icon(Icons.edit),
-              title: const Text('修改（尚未開放）'),
-              onTap: () {
+              title: const Text('修改'),
+              onTap: () async {
                 Navigator.pop(context);
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => GuideFormPage(
+                      jobTypeId: widget.jobTypeId,
+                      jobTypeName: widget.jobTypeName,
+                      guide: guide, // ✅ 傳入該筆資料
+                    ),
+                  ),
+                );
+                if (result == true) _fetchGuides();
               },
             ),
+
             ListTile(
               leading: const Icon(Icons.delete),
               title: const Text('刪除'),
