@@ -6,9 +6,13 @@ from rest_framework.permissions import IsAuthenticated, BasePermission
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework_simplejwt.views import TokenObtainPairView
-from .models import SignalGuide, JobType
-from .serializers import CustomTokenObtainPairSerializer, SignalGuideSerializer, JobTypeSerializer
+from .models import SignalGuide, JobType, Device
+from .serializers import CustomTokenObtainPairSerializer, SignalGuideSerializer, JobTypeSerializer, DeviceSerializer
 import re
+
+# Home view
+def home(request):
+    return HttpResponse("🎉 歡迎來到 Signal Guide 系統 API 後端")
 
 # 自訂登入序列化器：加入 name、role、employee_id
 class CustomTokenView(TokenObtainPairView):
@@ -102,6 +106,11 @@ class JobTypeViewSet(viewsets.ModelViewSet):
     serializer_class = JobTypeSerializer
     permission_classes = [IsAuthenticated, IsAdminRole]
 
-# Home view
-def home(request):
-    return HttpResponse("🎉 歡迎來到 Signal Guide 系統 API 後端")
+
+# 取得所有工作說明書
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def devices_by_guide(request, guide_id):
+    devices = Device.objects.filter(guide_id=guide_id)
+    serializer = DeviceSerializer(devices, many=True)
+    return Response(serializer.data)

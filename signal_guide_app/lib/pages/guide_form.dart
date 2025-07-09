@@ -117,12 +117,18 @@ class _GuideFormPageState extends State<GuideFormPage> {
       })
       ..body = jsonEncode({
         'job_type': widget.jobTypeId,
-        'system': _systemController.text.isNotEmpty ? _systemController.text : _system,
-        'subsystem': _subsystemController.text.isNotEmpty ? _subsystemController.text : _subsystem,
+        'system': _systemController.text.isNotEmpty
+            ? _systemController.text
+            : (_system ?? ''),
+        'subsystem': _subsystemController.text.isNotEmpty
+            ? _subsystemController.text
+            : (_subsystem ?? ''),
         'equipment_type': _deviceTypeController.text,
         'doc_number': fullDocCode,
         'title': _docNameController.text,
-        'department': _deptController.text.isNotEmpty ? _deptController.text : _dept,
+        'department': _deptController.text.isNotEmpty
+            ? _deptController.text
+            : (_dept ?? ''),
         'owner': _personController.text,
       });
 
@@ -138,6 +144,7 @@ class _GuideFormPageState extends State<GuideFormPage> {
       Navigator.pop(context, true);
     } else {
       print('儲存失敗：${response.statusCode}');
+      print('錯誤回應內容：${response.body}');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('儲存失敗，請稍後再試')),
       );

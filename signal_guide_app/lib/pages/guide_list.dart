@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'guide_form.dart';
+import 'device_list.dart';
 
 class GuideListPage extends StatefulWidget {
   final int jobTypeId;
@@ -178,8 +179,10 @@ class _GuideListPageState extends State<GuideListPage> {
     );
 
     if (res.statusCode == 200) {
-      _fetchGuides();
-      Navigator.pop(context, true);
+      await _fetchGuides();  // 保留更新畫面
+      if (mounted) {
+        Navigator.pop(context, true); // 回傳 true 表示有更新
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('更新置頂狀態失敗')),
@@ -222,6 +225,17 @@ class _GuideListPageState extends State<GuideListPage> {
             trailing: isPinned
                 ? const Text('置頂', style: TextStyle(color: Colors.orange))
                 : null,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => DeviceListPage(
+                    guideId: guide['id'],
+                    guideTitle: guide['title'] ?? '',
+                  ),
+                ),
+              );
+            },
             onLongPress: userRole == 'A'
                 ? () => _showGuideOptions(context, guide)
                 : null,

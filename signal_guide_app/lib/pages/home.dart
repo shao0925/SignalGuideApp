@@ -8,6 +8,7 @@ import 'login.dart';
 import 'create_user.dart';
 import 'change_password.dart';
 import 'guide_list.dart';
+import 'device_list.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -306,12 +307,14 @@ class _HomePageState extends State<HomePage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => GuideListPage(
-                                jobTypeId: guide['job_type'] ?? 0,
-                                jobTypeName: '相關類別',
+                              builder: (context) => DeviceListPage(
+                                guideId: guide['id'],
+                                guideTitle: guide['title'] ?? '',
                               ),
                             ),
-                          );
+                          ).then((_) {
+                            _fetchPinnedGuides(); // 回來時刷新置頂列表
+                          });
                         },
                       ),
                     );
