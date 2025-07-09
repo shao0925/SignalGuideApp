@@ -1,13 +1,15 @@
 # signalguideapp/urls.py
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import SignalGuideViewSet, JobTypeViewSet, CustomTokenView, DeviceViewSet, FaultCaseViewSet, home, create_user_view, change_password, devices_by_guide
+from .views import SignalGuideViewSet, JobTypeViewSet, CustomTokenView, DeviceViewSet, FaultCaseViewSet, ProcedureStepViewSet, home, create_user_view, change_password, devices_by_guide
 
 router = DefaultRouter()
 router.register(r'signal-guides', SignalGuideViewSet)
 router.register(r'jobtypes', JobTypeViewSet)
 router.register(r'devices', DeviceViewSet)
 router.register(r'faultcases', FaultCaseViewSet, basename='faultcase')
+router.register(r'steps', ProcedureStepViewSet, basename='procedurestep')
+
 
 
 urlpatterns = [

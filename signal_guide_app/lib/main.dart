@@ -5,6 +5,7 @@ import 'pages/jobtype_form.dart';
 import 'pages/device_form.dart';
 import 'pages/fault_case_list.dart';
 import 'pages/fault_case_form.dart';
+import 'pages/procedure_step_list.dart';
 
 void main() {
   runApp(
@@ -42,6 +43,13 @@ void main() {
             deviceId: args['deviceId'],
             deviceName: args['deviceName'],
             fault: args['fault'],
+          );
+        },
+        '/procedure-steps': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as Map;
+          return ProcedureStepListPage(
+            faultId: args['faultId'],
+            faultDescription: args['faultDescription'],
           );
         },
       },

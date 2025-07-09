@@ -185,7 +185,14 @@ class _FaultCaseListPageState extends State<FaultCaseListPage> {
             leading: const Icon(Icons.error_outline),
             title: Text(fault['description'] ?? '未命名故障案例'),
             onTap: () {
-              // TODO: 跳轉步驟圖片頁面
+              Navigator.pushNamed(
+                context,
+                '/procedure-steps',
+                arguments: {
+                  'faultId': fault['id'],
+                  'faultDescription': fault['description'],
+                },
+              );
             },
             onLongPress: isAdmin ? () => _showFaultOptions(fault) : null,
           );

@@ -6,8 +6,8 @@ from rest_framework.permissions import IsAuthenticated, BasePermission
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework_simplejwt.views import TokenObtainPairView
-from .models import SignalGuide, JobType, Device, FaultCase
-from .serializers import CustomTokenObtainPairSerializer, SignalGuideSerializer, JobTypeSerializer, DeviceSerializer, FaultCaseSerializer
+from .models import SignalGuide, JobType, Device, FaultCase, ProcedureStep
+from .serializers import CustomTokenObtainPairSerializer, SignalGuideSerializer, JobTypeSerializer, DeviceSerializer, FaultCaseSerializer, ProcedureStepSerializer
 import re
 
 # Home view
@@ -133,3 +133,9 @@ class FaultCaseViewSet(viewsets.ModelViewSet):
         if device_id:
             queryset = queryset.filter(device__id=device_id)
         return queryset.order_by('-created_at')
+
+# ProcedureStep ViewSet
+class ProcedureStepViewSet(viewsets.ModelViewSet):
+    queryset = ProcedureStep.objects.all()
+    serializer_class = ProcedureStepSerializer
+    permission_classes = [IsAuthenticated, IsAdminRole]
