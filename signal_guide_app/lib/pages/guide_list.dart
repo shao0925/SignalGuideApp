@@ -36,20 +36,19 @@ class _GuideListPageState extends State<GuideListPage> {
     if (token != null) {
       final parts = token.split('.');
       if (parts.length == 3) {
-        final payload =
-        utf8.decode(base64Url.decode(base64Url.normalize(parts[1])));
+        final payload = utf8.decode(base64Url.decode(base64Url.normalize(parts[1])));
         final decoded = jsonDecode(payload);
         setState(() {
           userRole = decoded['role'];
         });
+        print('解析後角色：$userRole'); // Debug
       }
     }
   }
 
   Future<void> _fetchGuides() async {
     final token = await storage.read(key: 'access_token');
-    final url = Uri.parse(
-        'http://10.0.2.2:8000/api/signal-guides/?job_type=${widget.jobTypeId}');
+    final url = Uri.parse('http://10.0.2.2:8000/api/signal-guides/?job_type=${widget.jobTypeId}');
 
     try {
       final response = await http.get(
@@ -61,9 +60,15 @@ class _GuideListPageState extends State<GuideListPage> {
         final List<dynamic> data = jsonDecode(response.body);
         setState(() {
           _guides = List<Map<String, dynamic>>.from(data);
+          // Optional: 排序置頂優先
+          _guides.sort((a, b) {
+            if (a['is_pinned'] == b['is_pinned']) return 0;
+            return a['is_pinned'] == true ? -1 : 1;
+          });
           _isLoading = false;
         });
       } else if (response.statusCode == 401) {
+        await storage.deleteAll();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('登入逾時，請重新登入')),
         );
@@ -186,28 +191,25 @@ class _GuideListPageState extends State<GuideListPage> {
           final isPinned = guide['is_pinned'] == true;
 
           return ListTile(
-            leading: Icon(Icons.description,
-                color: isPinned ? Colors.orange : null),
+            leading: Icon(Icons.description, color: isPinned ? Colors.orange : null),
             title: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if (guide['doc_number'] != null && guide['doc_number'].toString().isNotEmpty)
+                  Text(
+                    guide['doc_number'],
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
                 Text(
                   guide['title'],
                   style: isPinned
                       ? const TextStyle(fontWeight: FontWeight.bold)
                       : null,
                 ),
-                if (guide['code'] != null)
-                  Text(
-                    guide['code'],
-                    style: const TextStyle(
-                        fontSize: 12, color: Colors.grey),
-                  ),
               ],
             ),
             trailing: isPinned
-                ? const Text('置頂',
-                style: TextStyle(color: Colors.orange))
+                ? const Text('置頂', style: TextStyle(color: Colors.orange))
                 : null,
             onLongPress: userRole == 'A'
                 ? () => _showGuideOptions(context, guide)
@@ -215,7 +217,9 @@ class _GuideListPageState extends State<GuideListPage> {
           );
         },
       )),
-      floatingActionButton: userRole == 'A'
+      floatingActionButton: (userRole == null)
+          ? null
+          : (userRole == 'A'
           ? FloatingActionButton(
         onPressed: () async {
           final result = await Navigator.push(
@@ -232,7 +236,7 @@ class _GuideListPageState extends State<GuideListPage> {
         child: const Icon(Icons.add),
         tooltip: '新增說明書',
       )
-          : null,
+          : null),
     );
   }
 }
