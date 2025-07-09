@@ -147,20 +147,20 @@ class FaultCase(models.Model):
         verbose_name_plural = '設備故障案例列表'
 
 
-# 故障處理步驟模型（ProcedureStep）
+# 故障處理圖片模型（ProcedureStep）
 class ProcedureStep(models.Model):
     fault = models.ForeignKey(FaultCase, on_delete=models.CASCADE, related_name='steps')
-    step_order = models.PositiveIntegerField("步驟順序")
-    instruction = models.TextField("處理說明")
+    file = models.FileField("步驟相關圖片或PDF", upload_to='procedure_files/')
+    order = models.PositiveIntegerField("排序順序", default=0)  # 拖曳排序使用
 
     # 加入時間戳記
     created_at = models.DateTimeField("建立時間", auto_now_add=True)
     updated_at = models.DateTimeField("最後更新", auto_now=True)
 
     class Meta:
-        ordering = ['step_order']
-        verbose_name = '故障處理步驟'
-        verbose_name_plural = '故障處理步驟列表'
+        ordering = ['order']  # 預設依照拖曳順序顯示
+        verbose_name = '故障處理圖片'
+        verbose_name_plural = '故障處理圖片列表'
 
     def __str__(self):
-        return f"Step {self.step_order}"
+        return f"步驟檔案 ID: {self.id}"

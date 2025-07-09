@@ -59,17 +59,13 @@ class FaultCaseAdmin(admin.ModelAdmin):
         return obj.description[:30] + ('...' if len(obj.description) > 30 else '')
     description_short.short_description = '故障徵狀'
 
-# ----------- 處理步驟管理後台 -----------
+# ----------- 處理步驟管理後台 -----------  
 class ProcedureStepAdmin(admin.ModelAdmin):
-    list_display = ('step_order', 'instruction_short', 'fault', 'created_at')
+    list_display = ('order', 'file', 'fault', 'created_at')  # 改為 order 與 file
     list_filter = ('fault__device__guide__job_type',)
-    search_fields = ('instruction', 'fault__description')
-    ordering = ('fault', 'step_order')
+    search_fields = ('fault__description',)
+    ordering = ('fault', 'order')  # 改為 order
     readonly_fields = ('created_at', 'updated_at')
-
-    def instruction_short(self, obj):
-        return obj.instruction[:30] + ('...' if len(obj.instruction) > 30 else '')
-    instruction_short.short_description = '處理說明'
 
 # ----------- 註冊模型與對應後台管理類 -----------
 admin.site.register(CustomUser, CustomUserAdmin)
