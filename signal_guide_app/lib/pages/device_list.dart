@@ -21,11 +21,18 @@ class _DeviceListPageState extends State<DeviceListPage> {
   final storage = FlutterSecureStorage();
   List<Map<String, dynamic>> _devices = [];
   bool _isLoading = true;
+  String? userRole;
 
   @override
   void initState() {
     super.initState();
     _fetchDevices();
+    _loadUserRole();
+  }
+
+  Future<void> _loadUserRole() async {
+    final role = await storage.read(key: 'role');
+    setState(() => userRole = role);
   }
 
   Future<void> _fetchDevices() async {
@@ -54,6 +61,75 @@ class _DeviceListPageState extends State<DeviceListPage> {
     }
   }
 
+  void _showDeviceOptions(Map<String, dynamic> device) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Wrap(
+        children: [
+          ListTile(
+            leading: const Icon(Icons.edit),
+            title: const Text('修改設備'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.pushNamed(
+                context,
+                '/add-device',
+                arguments: {
+                  'guideId': widget.guideId,
+                  'guideTitle': widget.guideTitle,
+                  'device': device,
+                },
+              ).then((result) {
+                if (result == true) {
+                  _fetchDevices();
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("✅ 設備已更新")));
+                }
+              });
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.delete),
+            title: const Text('刪除設備'),
+            onTap: () {
+              Navigator.pop(context);
+              _confirmDeleteDevice(device['id']);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmDeleteDevice(int deviceId) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("確認刪除"),
+        content: const Text("確定要刪除此設備嗎？此操作無法還原。"),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("取消")),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text("刪除")),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      final token = await storage.read(key: 'access_token');
+      final url = Uri.parse('http://10.0.2.2:8000/api/devices/$deviceId/');
+      final response = await http.delete(
+        url,
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 204) {
+        _fetchDevices();
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("✅ 已刪除設備")));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("刪除失敗")));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -67,14 +143,30 @@ class _DeviceListPageState extends State<DeviceListPage> {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
-            const Text(
-              '設備清單',
-              style: TextStyle(fontSize: 12),
-            ),
+            const Text('設備清單', style: TextStyle(fontSize: 12)),
           ],
         ),
       ),
-
+      floatingActionButton: userRole == 'A'
+          ? FloatingActionButton(
+        onPressed: () {
+          Navigator.pushNamed(
+            context,
+            '/add-device',
+            arguments: {
+              'guideId': widget.guideId,
+              'guideTitle': widget.guideTitle,
+            },
+          ).then((result) {
+            if (result == true) {
+              _fetchDevices();
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("✅ 已新增設備")));
+            }
+          });
+        },
+        child: const Icon(Icons.add),
+      )
+          : null,
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : (_devices.isEmpty
@@ -86,6 +178,7 @@ class _DeviceListPageState extends State<DeviceListPage> {
           return ListTile(
             leading: const Icon(Icons.settings),
             title: Text(device['name'] ?? '未命名設備'),
+            onLongPress: userRole == 'A' ? () => _showDeviceOptions(device) : null,
           );
         },
       )),

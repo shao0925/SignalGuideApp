@@ -114,3 +114,9 @@ def devices_by_guide(request, guide_id):
     devices = Device.objects.filter(guide_id=guide_id)
     serializer = DeviceSerializer(devices, many=True)
     return Response(serializer.data)
+
+# Device ViewSet
+class DeviceViewSet(viewsets.ModelViewSet):
+    queryset = Device.objects.all()
+    serializer_class = DeviceSerializer
+    permission_classes = [IsAuthenticated, IsAdminRole]
