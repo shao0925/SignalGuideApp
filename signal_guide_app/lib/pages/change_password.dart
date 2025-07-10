@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../constants.dart';
 
 class ChangePasswordPage extends StatefulWidget {
   const ChangePasswordPage({super.key});
@@ -32,7 +33,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
     final token = await storage.read(key: 'access_token');
 
     final response = await http.post(
-      Uri.parse('http://10.0.2.2:8000/api/change_password/'),
+      Uri.parse('$kBaseUrl/change_password/'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',

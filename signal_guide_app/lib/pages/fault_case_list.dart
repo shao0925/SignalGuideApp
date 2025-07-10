@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import '../constants.dart';
 
 class FaultCaseListPage extends StatefulWidget {
   final int deviceId;
@@ -37,7 +38,7 @@ class _FaultCaseListPageState extends State<FaultCaseListPage> {
 
   Future<void> _fetchFaultCases() async {
     final token = await storage.read(key: 'access_token');
-    final url = Uri.parse('http://10.0.2.2:8000/api/faultcases/?device_id=${widget.deviceId}');
+    final url = Uri.parse('$kBaseUrl/faultcases/?device_id=${widget.deviceId}');
 
     try {
       final response = await http.get(
@@ -116,7 +117,7 @@ class _FaultCaseListPageState extends State<FaultCaseListPage> {
 
     if (confirmed == true) {
       final token = await storage.read(key: 'access_token');
-      final url = Uri.parse('http://10.0.2.2:8000/api/faultcases/$faultId/');
+      final url = Uri.parse('$kBaseUrl/faultcases/$faultId/');
       final response = await http.delete(
         url,
         headers: {'Authorization': 'Bearer $token'},

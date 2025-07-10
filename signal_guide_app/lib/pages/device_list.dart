@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import '../constants.dart';
 
 class DeviceListPage extends StatefulWidget {
   final int guideId;
@@ -37,7 +38,7 @@ class _DeviceListPageState extends State<DeviceListPage> {
 
   Future<void> _fetchDevices() async {
     final token = await storage.read(key: 'access_token');
-    final url = Uri.parse('http://10.0.2.2:8000/api/devices/by-guide/${widget.guideId}/');
+    final url = Uri.parse('$kBaseUrl/devices/by-guide/${widget.guideId}/');
 
     try {
       final response = await http.get(
@@ -115,7 +116,7 @@ class _DeviceListPageState extends State<DeviceListPage> {
 
     if (confirmed == true) {
       final token = await storage.read(key: 'access_token');
-      final url = Uri.parse('http://10.0.2.2:8000/api/devices/$deviceId/');
+      final url = Uri.parse('$kBaseUrl/devices/$deviceId/');
       final response = await http.delete(
         url,
         headers: {'Authorization': 'Bearer $token'},

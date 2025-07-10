@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'home.dart';
+import '../constants.dart';
 
 
 class CreateUserPage extends StatefulWidget {
@@ -27,7 +28,7 @@ class _CreateUserPageState extends State<CreateUserPage> {
     final token = await storage.read(key: 'access_token');
 
     final response = await http.post(
-      Uri.parse('http://10.0.2.2:8000/api/create_user/'),
+      Uri.parse('$kBaseUrl/create_user/'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',

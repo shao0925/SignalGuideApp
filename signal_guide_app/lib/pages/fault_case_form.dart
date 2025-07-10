@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import '../constants.dart';
 
 class FaultCaseFormPage extends StatefulWidget {
   final int deviceId;
@@ -39,8 +40,8 @@ class _FaultCaseFormPageState extends State<FaultCaseFormPage> {
     final token = await storage.read(key: 'access_token');
     final isEditing = widget.fault != null;
     final url = isEditing
-        ? Uri.parse('http://10.0.2.2:8000/api/faultcases/${widget.fault!['id']}/')
-        : Uri.parse('http://10.0.2.2:8000/api/faultcases/');
+        ? Uri.parse('$kBaseUrl/faultcases/${widget.fault!['id']}/')
+        : Uri.parse('$kBaseUrl/faultcases/');
 
     setState(() => _isSubmitting = true);
 

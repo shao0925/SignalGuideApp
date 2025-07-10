@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../constants.dart';
 
 class ProcedureStepListPage extends StatefulWidget {
   final int faultId;
@@ -37,7 +38,7 @@ class _ProcedureStepListPageState extends State<ProcedureStepListPage> {
 
   Future<void> _fetchSteps() async {
     final token = await storage.read(key: 'access_token');
-    final url = Uri.parse('http://10.0.2.2:8000/api/procedure-steps/?fault_id=${widget.faultId}');
+    final url = Uri.parse('$kBaseUrl/procedure-steps/?fault_id=${widget.faultId}');
 
     try {
       final response = await http.get(
@@ -101,7 +102,7 @@ class _ProcedureStepListPageState extends State<ProcedureStepListPage> {
 
     if (confirmed == true) {
       final token = await storage.read(key: 'access_token');
-      final url = Uri.parse('http://10.0.2.2:8000/api/procedure-steps/$stepId/');
+      final url = Uri.parse('$kBaseUrl/procedure-steps/$stepId/');
       final response = await http.delete(
         url,
         headers: {'Authorization': 'Bearer $token'},

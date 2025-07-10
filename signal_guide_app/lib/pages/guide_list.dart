@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'guide_form.dart';
 import 'device_list.dart';
+import '../constants.dart';
 
 class GuideListPage extends StatefulWidget {
   final int jobTypeId;
@@ -49,7 +50,7 @@ class _GuideListPageState extends State<GuideListPage> {
 
   Future<void> _fetchGuides() async {
     final token = await storage.read(key: 'access_token');
-    final url = Uri.parse('http://10.0.2.2:8000/api/signal-guides/?job_type=${widget.jobTypeId}');
+    final url = Uri.parse('$kBaseUrl/signal-guides/?job_type=${widget.jobTypeId}');
 
     try {
       final response = await http.get(
@@ -136,7 +137,7 @@ class _GuideListPageState extends State<GuideListPage> {
 
   Future<void> _deleteGuide(int id) async {
     final token = await storage.read(key: 'access_token');
-    final url = Uri.parse('http://10.0.2.2:8000/api/signal-guides/$id/');
+    final url = Uri.parse('$kBaseUrl/signal-guides/$id/');
 
     final confirm = await showDialog(
       context: context,
@@ -167,7 +168,7 @@ class _GuideListPageState extends State<GuideListPage> {
 
   Future<void> _togglePin(int id, bool pin) async {
     final token = await storage.read(key: 'access_token');
-    final url = Uri.parse('http://10.0.2.2:8000/api/signal-guides/$id/');
+    final url = Uri.parse('$kBaseUrl/signal-guides/$id/');
 
     final res = await http.patch(
       url,

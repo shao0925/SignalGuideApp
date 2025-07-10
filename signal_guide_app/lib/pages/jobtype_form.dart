@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../constants.dart';
 
 class JobTypeFormPage extends StatefulWidget {
   const JobTypeFormPage({super.key});
@@ -23,7 +24,7 @@ class _JobTypeFormPageState extends State<JobTypeFormPage> {
       return;
     }
 
-    final url = Uri.parse('http://10.0.2.2:8000/api/jobtypes/');
+    final url = Uri.parse('$kBaseUrl/jobtypes/');
     final response = await http.post(
       url,
       headers: {

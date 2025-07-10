@@ -9,6 +9,7 @@ import 'create_user.dart';
 import 'change_password.dart';
 import 'guide_list.dart';
 import 'device_list.dart';
+import '../constants.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -48,7 +49,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _fetchJobTypes() async {
     final token = await storage.read(key: 'access_token');
-    final url = Uri.parse('http://10.0.2.2:8000/api/jobtypes/');
+    final url = Uri.parse('$kBaseUrl/jobtypes/');
     try {
       final response = await http.get(url, headers: {
         'Authorization': 'Bearer $token',
@@ -79,7 +80,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _fetchPinnedGuides() async {
     final token = await storage.read(key: 'access_token');
-    final url = Uri.parse('http://10.0.2.2:8000/api/signal-guides/?is_pinned=true');
+    final url = Uri.parse('$kBaseUrl/signal-guides/?is_pinned=true');
 
     try {
       final response = await http.get(url, headers: {
@@ -145,7 +146,7 @@ class _HomePageState extends State<HomePage> {
               Navigator.pop(context);
               final token = await storage.read(key: 'access_token');
               final url =
-              Uri.parse('http://10.0.2.2:8000/api/jobtypes/$id/');
+              Uri.parse('$kBaseUrl/jobtypes/$id/');
               final response = await http.put(
                 url,
                 headers: {
@@ -185,7 +186,7 @@ class _HomePageState extends State<HomePage> {
               Navigator.pop(context);
               final token = await storage.read(key: 'access_token');
               final url =
-              Uri.parse('http://10.0.2.2:8000/api/jobtypes/$id/');
+              Uri.parse('$kBaseUrl/jobtypes/$id/');
               final response = await http.delete(
                 url,
                 headers: {

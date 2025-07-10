@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import '../constants.dart';
 
 class DeviceFormPage extends StatefulWidget {
   final int guideId;
@@ -41,8 +42,8 @@ class _DeviceFormPageState extends State<DeviceFormPage> {
     final isEdit = widget.device != null;
 
     final url = isEdit
-        ? Uri.parse('http://10.0.2.2:8000/api/devices/${widget.device!['id']}/')
-        : Uri.parse('http://10.0.2.2:8000/api/devices/');
+        ? Uri.parse('$kBaseUrl/devices/${widget.device!['id']}/')
+        : Uri.parse('$kBaseUrl/devices/');
 
     final response = await (isEdit ? http.put : http.post)(
       url,

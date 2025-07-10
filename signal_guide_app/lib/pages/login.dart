@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'home.dart';
+import '../constants.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -19,7 +20,7 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _login() async {
     print("⚡️ Login button clicked"); // ← 加這行看看有無被觸發
-    final url = Uri.parse('http://10.0.2.2:8000/api/token/');
+    final url = Uri.parse('$kBaseUrl/token/');
 
     final response = await http.post(
       url,

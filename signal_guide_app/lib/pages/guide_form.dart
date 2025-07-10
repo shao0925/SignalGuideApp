@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../constants.dart';
 
 class GuideFormPage extends StatefulWidget {
   final int jobTypeId;
@@ -100,8 +101,8 @@ class _GuideFormPageState extends State<GuideFormPage> {
     final token = await storage.read(key: 'access_token');
     final isEditing = widget.guide != null;
     final url = isEditing
-        ? Uri.parse('http://10.0.2.2:8000/api/signal-guides/${widget.guide!['id']}/')
-        : Uri.parse('http://10.0.2.2:8000/api/signal-guides/');
+        ? Uri.parse('$kBaseUrl/signal-guides/${widget.guide!['id']}/')
+        : Uri.parse('$kBaseUrl/signal-guides/');
     final method = isEditing ? 'PATCH' : 'POST';
 
     String fullDocCode =
