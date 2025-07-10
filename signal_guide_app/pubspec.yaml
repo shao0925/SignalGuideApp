@@ -34,6 +34,7 @@ dependencies:
   flutter_secure_storage: ^8.1.0  # 用來存 access token
   url_launcher: ^6.2.5
   file_selector: ^1.0.3
+  photo_view: ^0.14.0
 
 
 

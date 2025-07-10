@@ -65,41 +65,56 @@ class _DeviceListPageState extends State<DeviceListPage> {
   void _showDeviceOptions(Map<String, dynamic> device) {
     showModalBottomSheet(
       context: context,
-      builder: (context) => Wrap(
-        children: [
-          ListTile(
-            leading: const Icon(Icons.edit),
-            title: const Text('修改設備'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.pushNamed(
-                context,
-                '/add-device',
-                arguments: {
-                  'guideId': widget.guideId,
-                  'guideTitle': widget.guideTitle,
-                  'device': device,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => SafeArea(
+        child: Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.edit),
+                title: const Text('修改設備'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushNamed(
+                    context,
+                    '/add-device',
+                    arguments: {
+                      'guideId': widget.guideId,
+                      'guideTitle': widget.guideTitle,
+                      'device': device,
+                    },
+                  ).then((result) {
+                    if (result == true) {
+                      _fetchDevices();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("✅ 設備已更新")),
+                      );
+                    }
+                  });
                 },
-              ).then((result) {
-                if (result == true) {
-                  _fetchDevices();
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("✅ 設備已更新")));
-                }
-              });
-            },
+              ),
+              ListTile(
+                leading: const Icon(Icons.delete),
+                title: const Text('刪除設備'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _confirmDeleteDevice(device['id']);
+                },
+              ),
+              const SizedBox(height: 16),
+            ],
           ),
-          ListTile(
-            leading: const Icon(Icons.delete),
-            title: const Text('刪除設備'),
-            onTap: () {
-              Navigator.pop(context);
-              _confirmDeleteDevice(device['id']);
-            },
-          ),
-        ],
+        ),
       ),
     );
   }
+
 
   void _confirmDeleteDevice(int deviceId) async {
     final confirmed = await showDialog<bool>(

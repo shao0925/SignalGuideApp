@@ -139,3 +139,16 @@ class ProcedureStepViewSet(viewsets.ModelViewSet):
     queryset = ProcedureStep.objects.all()
     serializer_class = ProcedureStepSerializer
     permission_classes = [IsAuthenticated, IsAdminRole]
+
+    def partial_update(self, request, *args, **kwargs):
+        response = super().partial_update(request, *args, **kwargs)
+
+        fault_id = request.data.get('fault')
+        if fault_id:
+            steps = ProcedureStep.objects.filter(fault_id=fault_id).order_by('order')
+            for idx, step in enumerate(steps, start=1):
+                if step.order != idx:
+                    step.order = idx
+                    step.save()
+
+        return response

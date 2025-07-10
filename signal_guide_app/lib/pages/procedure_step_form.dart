@@ -28,14 +28,50 @@ class _ProcedureStepFormPageState extends State<ProcedureStepFormPage> {
   XFile? _selectedFile;
   String? _fileName;
 
+  @override
+  void initState() {
+    super.initState();
+    _fetchNextOrder(); // 預設排序值
+  }
+
+  Future<void> _fetchNextOrder() async {
+    final token = await storage.read(key: 'access_token');
+    final uri = Uri.parse('$kBaseUrl/steps/?fault_id=${widget.faultId}');
+
+    final response = await http.get(uri, headers: {
+      'Authorization': 'Bearer $token',
+    });
+
+    if (response.statusCode == 200) {
+      final List data = jsonDecode(response.body);
+      final orders = data.map<int>((item) => item['order'] as int).toList();
+      final maxOrder = orders.isEmpty ? 0 : orders.reduce((a, b) => a > b ? a : b);
+      _orderController.text = (maxOrder + 1).toString();
+    } else {
+      print('取得排序失敗：${response.statusCode} - ${response.body}');
+      _orderController.text = '1';
+    }
+  }
+
   Future<void> _pickFile() async {
     final file = await openFile(
       acceptedTypeGroups: [
-        XTypeGroup(label: 'images_and_pdf', extensions: ['jpg', 'jpeg', 'png', 'pdf']),
+        XTypeGroup(
+          label: 'image_only',
+          extensions: ['jpg', 'jpeg', 'png'],
+        ),
       ],
     );
 
     if (file != null) {
+      final ext = file.name.toLowerCase().split('.').last;
+      if (!['jpg', 'jpeg', 'png'].contains(ext)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('❌ 僅支援上傳圖片（.jpg / .png）')),
+        );
+        return;
+      }
+
       setState(() {
         _selectedFile = file;
         _fileName = file.name;
@@ -44,10 +80,17 @@ class _ProcedureStepFormPageState extends State<ProcedureStepFormPage> {
   }
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate() || _selectedFile == null) return;
+    if (!_formKey.currentState!.validate()) return;
+
+    if (_selectedFile == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('❗ 請選擇圖片')),
+      );
+      return;
+    }
 
     final token = await storage.read(key: 'access_token');
-    final uri = Uri.parse('$kBaseUrl/procedure-steps/');
+    final uri = Uri.parse('$kBaseUrl/steps/');
 
     final request = http.MultipartRequest('POST', uri)
       ..headers['Authorization'] = 'Bearer $token'
@@ -103,7 +146,7 @@ class _ProcedureStepFormPageState extends State<ProcedureStepFormPage> {
               ElevatedButton.icon(
                 onPressed: _pickFile,
                 icon: const Icon(Icons.upload_file),
-                label: Text(_fileName ?? '選擇圖片或 PDF'),
+                label: Text(_fileName ?? '選擇圖片（僅限 .jpg / .png）'),
               ),
               const SizedBox(height: 20),
               ElevatedButton(

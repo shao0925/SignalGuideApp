@@ -65,39 +65,52 @@ class _FaultCaseListPageState extends State<FaultCaseListPage> {
   void _showFaultOptions(Map<String, dynamic> fault) {
     showModalBottomSheet(
       context: context,
-      builder: (context) => Wrap(
-        children: [
-          ListTile(
-            leading: const Icon(Icons.edit),
-            title: const Text('修改故障案例'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.pushNamed(
-                context,
-                '/edit-fault',
-                arguments: {
-                  'deviceId': widget.deviceId,
-                  'deviceName': widget.deviceName,
-                  'fault': fault,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => SafeArea( // ✅ 避免被遮住
+        child: Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min, // ✅ 僅佔內容高度
+            children: [
+              ListTile(
+                leading: const Icon(Icons.edit),
+                title: const Text('修改故障案例'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushNamed(
+                    context,
+                    '/edit-fault',
+                    arguments: {
+                      'deviceId': widget.deviceId,
+                      'deviceName': widget.deviceName,
+                      'fault': fault,
+                    },
+                  ).then((result) {
+                    if (result == true) {
+                      _fetchFaultCases();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("✅ 故障案例已更新")),
+                      );
+                    }
+                  });
                 },
-              ).then((result) {
-                if (result == true) {
-                  _fetchFaultCases();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("✅ 故障案例已更新")));
-                }
-              });
-            },
+              ),
+              ListTile(
+                leading: const Icon(Icons.delete),
+                title: const Text('刪除故障案例'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _confirmDeleteFault(fault['id']);
+                },
+              ),
+              const SizedBox(height: 16), // ✅ 預留與導覽列的距離
+            ],
           ),
-          ListTile(
-            leading: const Icon(Icons.delete),
-            title: const Text('刪除故障案例'),
-            onTap: () {
-              Navigator.pop(context);
-              _confirmDeleteFault(fault['id']);
-            },
-          ),
-        ],
+        ),
       ),
     );
   }
