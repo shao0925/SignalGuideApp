@@ -21,11 +21,18 @@ class _ProcedureStepListPageState extends State<ProcedureStepListPage> {
   final storage = FlutterSecureStorage();
   List<dynamic> _steps = [];
   bool _isLoading = true;
+  String? userRole;
 
   @override
   void initState() {
     super.initState();
+    _loadUserRole();
     _fetchSteps();
+  }
+
+  Future<void> _loadUserRole() async {
+    final role = await storage.read(key: 'role');
+    setState(() => userRole = role);
   }
 
   Future<void> _fetchSteps() async {
@@ -53,8 +60,68 @@ class _ProcedureStepListPageState extends State<ProcedureStepListPage> {
     }
   }
 
+  void _showStepOptions(dynamic step) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Wrap(
+        children: [
+          ListTile(
+            leading: const Icon(Icons.edit),
+            title: const Text('編輯步驟圖片'),
+            onTap: () {
+              Navigator.pop(context);
+              // TODO: Navigator.pushNamed(context, '/edit-step', arguments: {...});
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.delete),
+            title: const Text('刪除步驟圖片'),
+            onTap: () {
+              Navigator.pop(context);
+              _confirmDeleteStep(step['id']);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmDeleteStep(int stepId) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("確認刪除"),
+        content: const Text("確定要刪除此步驟圖片嗎？此操作無法還原。"),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("取消")),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text("刪除")),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      final token = await storage.read(key: 'access_token');
+      final url = Uri.parse('http://10.0.2.2:8000/api/procedure-steps/$stepId/');
+      final response = await http.delete(
+        url,
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 204) {
+        _fetchSteps();
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("✅ 已刪除圖片")));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("❌ 刪除失敗")));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isAdmin = userRole == 'A';
+
     return Scaffold(
       appBar: AppBar(
         title: Column(
@@ -65,6 +132,27 @@ class _ProcedureStepListPageState extends State<ProcedureStepListPage> {
           ],
         ),
       ),
+      floatingActionButton: isAdmin
+          ? FloatingActionButton(
+        onPressed: () async {
+          final result = await Navigator.pushNamed(
+            context,
+            '/add-step',
+            arguments: {
+              'faultId': widget.faultId,
+              'faultDescription': widget.faultDescription,
+            },
+          );
+          if (result == true) {
+            _fetchSteps();
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('✅ 已新增步驟圖片')),
+            );
+          }
+        },
+        child: const Icon(Icons.add),
+      )
+          : null,
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : (_steps.isEmpty
@@ -79,8 +167,9 @@ class _ProcedureStepListPageState extends State<ProcedureStepListPage> {
             title: Text('步驟 ${step['order']}'),
             subtitle: Text('ID: ${step['id']}'),
             onTap: () {
-              // TODO: 點擊圖片查看大圖或編輯
+              // 可顯示大圖或全螢幕瀏覽
             },
+            onLongPress: isAdmin ? () => _showStepOptions(step) : null,
           );
         },
       )),

@@ -31,8 +31,10 @@ dependencies:
   flutter:
     sdk: flutter
   http: ^1.1.0
-  flutter_secure_storage: ^9.0.0  # 用來存 access token
+  flutter_secure_storage: ^8.1.0  # 用來存 access token
   url_launcher: ^6.2.5
+  file_selector: ^1.0.3
+
 
 
   # The following adds the Cupertino Icons font to your application.
