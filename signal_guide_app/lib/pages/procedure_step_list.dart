@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../constants.dart';
-import 'image_gallery.dart'; // ← 載入圖片瀏覽畫面
+import 'image_gallery.dart';
 
 class ProcedureStepListPage extends StatefulWidget {
   final int faultId;
@@ -145,6 +145,14 @@ class _ProcedureStepListPageState extends State<ProcedureStepListPage> {
     }
   }
 
+  String _cleanFileName(String fullPath) {
+    final decoded = Uri.decodeFull(fullPath.split('/').last);
+    final fileNameWithoutExt = decoded.replaceAll(RegExp(r'\.\w+$'), ''); // 去副檔名
+    final nameWithoutHash = fileNameWithoutExt.replaceAll(RegExp(r'_[a-zA-Z0-9]{6,}$'), ''); // 去亂碼
+    return nameWithoutHash;
+  }
+
+
   @override
   Widget build(BuildContext context) {
     final isAdmin = userRole == 'A';
@@ -211,8 +219,10 @@ class _ProcedureStepListPageState extends State<ProcedureStepListPage> {
         fit: BoxFit.cover,
         errorBuilder: (_, __, ___) => const Icon(Icons.broken_image),
       ),
-      title: Text(isPdf ? 'PDF 步驟文件' : '步驟圖片'),
-      subtitle: Text('ID: ${step['id']}'),
+      title: Text(
+        _cleanFileName(rawUrl),
+        overflow: TextOverflow.ellipsis,
+      ),
       onTap: isPdf
           ? () async {
         if (await canLaunchUrl(Uri.parse(fileUrl))) {
